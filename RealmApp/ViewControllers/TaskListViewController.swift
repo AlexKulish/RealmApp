@@ -43,8 +43,19 @@ class TaskListViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskListCell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         let taskList = taskLists[indexPath.row]
+        let currentTask = taskList.tasks.filter("isComplete = false")
+        
+        if taskList.tasks.isEmpty {
+            content.secondaryText = "\(0)"
+            cell.accessoryType = .none
+        } else if currentTask.isEmpty {
+            cell.accessoryType = .checkmark
+        } else {
+            content.secondaryText = "\(getCurrentTasks(taskList))"
+        }
+        
         content.text = taskList.name
-        content.secondaryText = "\(getCurrentTasks(taskList))"
+//        content.secondaryText = "\(getCurrentTasks(taskList))"
         cell.contentConfiguration = content
         return cell
     }
@@ -67,7 +78,7 @@ class TaskListViewController: UITableViewController {
         
         let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
             StorageManager.shared.done(taskList)
-            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.checkmark
+//            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.checkmark
             tableView.reloadRows(at: [indexPath], with: .automatic)
             isDone(true)
         }
