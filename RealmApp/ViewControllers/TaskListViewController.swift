@@ -44,7 +44,7 @@ class TaskListViewController: UITableViewController {
         var content = cell.defaultContentConfiguration()
         let taskList = taskLists[indexPath.row]
         content.text = taskList.name
-        content.secondaryText = "\(taskList.tasks.count)"
+        content.secondaryText = "\(getCurrentTasks(taskList))"
         cell.contentConfiguration = content
         return cell
     }
@@ -67,6 +67,7 @@ class TaskListViewController: UITableViewController {
         
         let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
             StorageManager.shared.done(taskList)
+            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.checkmark
             tableView.reloadRows(at: [indexPath], with: .automatic)
             isDone(true)
         }
@@ -86,6 +87,13 @@ class TaskListViewController: UITableViewController {
     }
 
     @IBAction func sortingList(_ sender: UISegmentedControl) {
+        switch sender.selectedSegmentIndex {
+        case 0:
+            taskLists = taskLists.sorted(byKeyPath: "date", ascending: false)
+        default:
+            taskLists = taskLists.sorted(byKeyPath: "name", ascending: true)
+        }
+        tableView.reloadData()
     }
     
     @objc private func  addButtonPressed() {
@@ -123,5 +131,16 @@ extension TaskListViewController {
         
         let rowIndex = IndexPath(row: taskLists.index(of: taskList) ?? 0, section: 0)
         tableView.insertRows(at: [rowIndex], with: .automatic)
+    }
+    
+    private func getCurrentTasks(_ taskList: TaskList) -> Int {
+        var count = 0
+        
+        for task in taskList.tasks {
+            if !task.isComplete {
+                count += 1
+            }
+        }
+        return count
     }
 }

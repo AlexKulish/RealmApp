@@ -54,6 +54,47 @@ class TasksViewController: UITableViewController {
         return cell
     }
     
+    // MARK: - Table View Data Source
+    override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let task = taskList.tasks[indexPath.row]
+        
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { _, _, _ in
+            StorageManager.shared.delete(at: indexPath.row, task, from: self.taskList)
+            self.tableView.deleteRows(at: [indexPath], with: .automatic)
+        }
+        
+        let editAction = UIContextualAction(style: .normal, title: "Edit") { _, _, isDone in
+            self.showAlert(with: task) {
+                self.tableView.reloadRows(at: [indexPath], with: .automatic)
+            }
+            isDone(true)
+        }
+        
+        let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
+            StorageManager.shared.done(task)
+            self.tableView.reloadData()
+            isDone(true)
+        }
+        
+        let unDoneAction = UIContextualAction(style: .normal, title: "UnDone") { _, _, isUnDone in
+            StorageManager.shared.unDone(task)
+            self.tableView.reloadData()
+            isUnDone(true)
+        }
+        
+        editAction.backgroundColor = .orange
+        doneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
+        unDoneAction.backgroundColor = #colorLiteral(red: 0.3411764801, green: 0.6235294342, blue: 0.1686274558, alpha: 1)
+        
+        if task.isComplete {
+            return UISwipeActionsConfiguration(actions: [unDoneAction, editAction, deleteAction])
+        } else {
+            
+            return UISwipeActionsConfiguration(actions: [doneAction, editAction, deleteAction])
+        }
+        
+    }
+    
     @objc private func addButtonPressed() {
         showAlert()
     }
@@ -67,8 +108,9 @@ extension TasksViewController {
         let alert = UIAlertController.createAlert(withTitle: title, andMessage: "What do you want to do?")
         
         alert.action(with: task) { newValue, note in
-            if let _ = task, let _ = completion {
-                // TODO - edit task
+            if let task = task, let completion = completion {
+                StorageManager.shared.edit(task, newName: newValue, newNote: note)
+                completion()
             } else {
                 self.saveTask(withName: newValue, andNote: note)
             }
