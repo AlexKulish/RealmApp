@@ -60,9 +60,8 @@ class StorageManager {
         }
     }
     
-    func delete(at index: Int, _ task: Task, from taskList: TaskList) {
+    func delete(_ task: Task) {
         write {
-            taskList.tasks.remove(at: index)
             realm.delete(task)
         }
     }
@@ -76,15 +75,15 @@ class StorageManager {
     
     func done(_ task: Task) {
         write {
-            task.setValue(true, forKey: "isComplete")
+            task.isComplete.toggle()
         }
     }
     
-    func unDone(_ task: Task) {
-        write {
-            task.setValue(false, forKey: "isComplete")
-        }
-    }
+//    func unDone(_ task: Task) {
+//        write {
+//            task.setValue(false, forKey: "isComplete")
+//        }
+//    }
     
     private func write(completion: () -> Void) {
         do {

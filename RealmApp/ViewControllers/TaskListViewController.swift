@@ -41,22 +41,8 @@ class TaskListViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskListCell", for: indexPath)
-        var content = cell.defaultContentConfiguration()
         let taskList = taskLists[indexPath.row]
-        let currentTask = taskList.tasks.filter("isComplete = false")
-        
-        if taskList.tasks.isEmpty {
-            content.secondaryText = "\(0)"
-            cell.accessoryType = .none
-        } else if currentTask.isEmpty {
-            cell.accessoryType = .checkmark
-        } else {
-            content.secondaryText = "\(getCurrentTasks(taskList))"
-        }
-        
-        content.text = taskList.name
-//        content.secondaryText = "\(getCurrentTasks(taskList))"
-        cell.contentConfiguration = content
+        cell.configure(with: taskList)
         return cell
     }
     
@@ -78,7 +64,6 @@ class TaskListViewController: UITableViewController {
         
         let doneAction = UIContextualAction(style: .normal, title: "Done") { _, _, isDone in
             StorageManager.shared.done(taskList)
-//            tableView.cellForRow(at: indexPath)?.accessoryType = UITableViewCell.AccessoryType.checkmark
             tableView.reloadRows(at: [indexPath], with: .automatic)
             isDone(true)
         }
@@ -98,12 +83,9 @@ class TaskListViewController: UITableViewController {
     }
 
     @IBAction func sortingList(_ sender: UISegmentedControl) {
-        switch sender.selectedSegmentIndex {
-        case 0:
-            taskLists = taskLists.sorted(byKeyPath: "date", ascending: false)
-        default:
-            taskLists = taskLists.sorted(byKeyPath: "name", ascending: true)
-        }
+        taskLists = sender.selectedSegmentIndex == 0
+        ? taskLists.sorted(byKeyPath: "date")
+        : taskLists.sorted(byKeyPath: "name")
         tableView.reloadData()
     }
     
@@ -142,16 +124,5 @@ extension TaskListViewController {
         
         let rowIndex = IndexPath(row: taskLists.index(of: taskList) ?? 0, section: 0)
         tableView.insertRows(at: [rowIndex], with: .automatic)
-    }
-    
-    private func getCurrentTasks(_ taskList: TaskList) -> Int {
-        var count = 0
-        
-        for task in taskList.tasks {
-            if !task.isComplete {
-                count += 1
-            }
-        }
-        return count
     }
 }
